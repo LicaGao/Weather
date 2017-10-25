@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13196" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+    <device id="retina4_7" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13174"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--城市-->
+        <scene sceneID="z18-nT-qvW">
+            <objects>
+                <viewController storyboardIdentifier="cityListView" useStoryboardIdentifierAsRestorationIdentifier="YES" id="9H0-cw-Q4b" customClass="CityListViewController" customModule="Weather" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="4qk-8G-ODX">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="jN3-9n-Olv">
+                                <rect key="frame" x="0.0" y="20" width="375" height="647"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <prototypes>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="cityCell" id="6Wb-SW-Oa9" customClass="CityListTableViewCell" customModule="Weather" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="28" width="375" height="44"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="6Wb-SW-Oa9" id="vKt-q0-GtX">
+                                            <rect key="frame" x="0.0" y="0.0" width="375" height="43.5"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Hl0-DV-Yie">
+                                                    <rect key="frame" x="10" y="7" width="100" height="30"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="height" constant="30" id="T8S-hI-OUG"/>
+                                                        <constraint firstAttribute="width" constant="100" id="cmD-7h-7H6"/>
+                                                    </constraints>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                            </subviews>
+                                        </tableViewCellContentView>
+                                        <constraints>
+                                            <constraint firstItem="Hl0-DV-Yie" firstAttribute="centerY" secondItem="6Wb-SW-Oa9" secondAttribute="centerY" id="Sdk-9i-enl"/>
+                                            <constraint firstItem="Hl0-DV-Yie" firstAttribute="leading" secondItem="6Wb-SW-Oa9" secondAttribute="leading" constant="10" id="Uvb-wY-q2C"/>
+                                        </constraints>
+                                        <connections>
+                                            <outlet property="cityNameLabel" destination="Hl0-DV-Yie" id="4Sp-mw-qHN"/>
+                                        </connections>
+                                    </tableViewCell>
+                                </prototypes>
+                            </tableView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints>
+                            <constraint firstItem="P1S-OQ-uic" firstAttribute="bottom" secondItem="jN3-9n-Olv" secondAttribute="bottom" id="3ro-gk-7c4"/>
+                            <constraint firstItem="jN3-9n-Olv" firstAttribute="centerY" secondItem="P1S-OQ-uic" secondAttribute="centerY" id="Dah-Sy-zTh"/>
+                            <constraint firstItem="P1S-OQ-uic" firstAttribute="trailing" secondItem="jN3-9n-Olv" secondAttribute="trailing" id="HBp-3W-0OP"/>
+                            <constraint firstItem="jN3-9n-Olv" firstAttribute="top" secondItem="P1S-OQ-uic" secondAttribute="top" id="StU-df-rpr"/>
+                            <constraint firstItem="jN3-9n-Olv" firstAttribute="centerX" secondItem="P1S-OQ-uic" secondAttribute="centerX" id="TgT-Xr-apj"/>
+                            <constraint firstItem="jN3-9n-Olv" firstAttribute="leading" secondItem="P1S-OQ-uic" secondAttribute="leading" id="w4Q-Fg-5wy"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="P1S-OQ-uic"/>
+                    </view>
+                    <navigationItem key="navigationItem" title="城市" id="m2L-zw-FmF"/>
+                    <connections>
+                        <outlet property="cityListTableView" destination="jN3-9n-Olv" id="aCE-Rq-PrO"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="X0S-yJ-LcK" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1711" y="466"/>
+        </scene>
+        <!--Weather View Controller-->
+        <scene sceneID="tne-QT-ifu">
+            <objects>
+                <viewController storyboardIdentifier="weatherView" useStoryboardIdentifierAsRestorationIdentifier="YES" id="BYZ-38-t0r" customClass="WeatherViewController" customModule="Weather" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ZBX-QB-TXe">
+                                <rect key="frame" x="0.0" y="20" width="375" height="607"/>
+                            </scrollView>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="UKK-uv-jPM">
+                                <rect key="frame" x="0.0" y="627" width="375" height="40"/>
+                                <subviews>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="QIG-hM-YYS">
+                                        <rect key="frame" x="10" y="10" width="20" height="20"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="20" id="Y59-Fi-UbS"/>
+                                            <constraint firstAttribute="width" constant="20" id="vUf-HA-LV8"/>
+                                        </constraints>
+                                        <state key="normal" image="menu"/>
+                                        <connections>
+                                            <action selector="menuBtn:" destination="BYZ-38-t0r" eventType="touchUpInside" id="mwh-AZ-IUk"/>
+                                        </connections>
+                                    </button>
+                                </subviews>
+                                <color key="backgroundColor" red="0.36589846869999998" green="0.62130121699999996" blue="0.84119224209999999" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                <constraints>
+                                    <constraint firstItem="QIG-hM-YYS" firstAttribute="leading" secondItem="UKK-uv-jPM" secondAttribute="leading" constant="10" id="IUD-pb-LKi"/>
+                                    <constraint firstItem="QIG-hM-YYS" firstAttribute="centerY" secondItem="UKK-uv-jPM" secondAttribute="centerY" id="Wuk-g8-h0v"/>
+                                </constraints>
+                            </view>
+                        </subviews>
+                        <color key="backgroundColor" red="0.36589846869999998" green="0.62130121699999996" blue="0.84119224209999999" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                        <constraints>
+                            <constraint firstItem="ZBX-QB-TXe" firstAttribute="centerX" secondItem="6Tk-OE-BBY" secondAttribute="centerX" id="9yK-jO-rvm"/>
+                            <constraint firstItem="UKK-uv-jPM" firstAttribute="width" secondItem="8bC-Xf-vdC" secondAttribute="width" id="Ab5-Gh-jSF"/>
+                            <constraint firstItem="UKK-uv-jPM" firstAttribute="bottom" secondItem="6Tk-OE-BBY" secondAttribute="bottom" id="KXC-PC-xR9"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="ZBX-QB-TXe" secondAttribute="bottom" constant="40" id="OhL-ck-fck"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="ZBX-QB-TXe" secondAttribute="trailing" id="Pwk-zU-yeR"/>
+                            <constraint firstItem="ZBX-QB-TXe" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" id="X68-iL-B1U"/>
+                            <constraint firstItem="ZBX-QB-TXe" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="XKg-OZ-deQ"/>
+                            <constraint firstItem="UKK-uv-jPM" firstAttribute="top" secondItem="ZBX-QB-TXe" secondAttribute="bottom" id="kMC-6Q-43p"/>
+                            <constraint firstItem="UKK-uv-jPM" firstAttribute="centerX" secondItem="6Tk-OE-BBY" secondAttribute="centerX" id="vmb-6t-8PS"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
+                    </view>
+                    <navigationItem key="navigationItem" id="35S-Rg-IIN"/>
+                    <connections>
+                        <outlet property="weatherInfoScrollView" destination="ZBX-QB-TXe" id="kL5-WQ-ViZ"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="960.79999999999995" y="465.51724137931041"/>
+        </scene>
+    </scenes>
+    <resources>
+        <image name="menu" width="16" height="16"/>
+    </resources>
+</document>
