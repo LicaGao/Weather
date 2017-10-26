@@ -3,8 +3,9 @@
     <entity name="CityInfo" representedClassName="CityInfo" syncable="YES" codeGenerationType="class">
         <attribute name="city" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="id" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="order" optional="YES" attributeType="String" syncable="YES"/>
     </entity>
     <elements>
-        <element name="CityInfo" positionX="-63" positionY="-18" width="128" height="75"/>
+        <element name="CityInfo" positionX="-63" positionY="-18" width="128" height="90"/>
     </elements>
 </model>

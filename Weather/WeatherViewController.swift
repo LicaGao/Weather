@@ -9,51 +9,60 @@
 import UIKit
 import SnapKit
 import Hero
+import CoreLocation
 
 class WeatherViewController: UIViewController, UIScrollViewDelegate, UITableViewDelegate, UITableViewDataSource {
 
-    var cityInfo: String = "446"
+    let locationManager:CLLocationManager = CLLocationManager()
+    var cityInfo: String = ""
     var futureDateArray : [String] = []
     var futureWeatherArray : [String] = []
     var futureWeatherDictionary: Dictionary<String, [String]> = [:]
+    var citynms : [String] = []
+    var cityInfos : Dictionary<String, String> = [:]
     let todayDate = Date()
     let formatter = DateFormatter()
     var isNight : Bool?
+    var currLocation : CLLocation!
     
     @IBOutlet weak var bottomView: UIView!
     @IBOutlet weak var weatherInfoScrollView: UIScrollView!
     @IBAction func menuBtn(_ sender: UIButton) {
+        
         let view = UIStoryboard.init(name: "Main", bundle: Bundle.main)
         let cityView = view.instantiateViewController(withIdentifier: "cityView")
-        cityView.heroModalAnimationType = .push(direction: .up)
+        cityView.heroModalAnimationType = .pageOut(direction: .up)
         self.present(cityView, animated: true, completion: nil)
+        
     }
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.distanceFilter = 1000
+        locationManager.requestAlwaysAuthorization()
+        locationManager.startUpdatingLocation()
         self.isHeroEnabled = true
         timeDayNight()
         self.view.backgroundColor = isNight! ? UIColor(named: "w_nightblue") : UIColor(named: "w_lightblue")
         bottomView.backgroundColor = self.view.backgroundColor
-        let appDelegate = UIApplication.shared.delegate as! AppDelegate
-        if appDelegate.cityInfo == "" {
-            cityInfo = "446"
-        } else {
-            cityInfo = appDelegate.cityInfo
-        }
-        
         weatherInfoScrollView.delegate = self
+        
         setUI()
-        getWeatherData()
-        getFutureWeatherData()
-        getLifeData()
-        getPMData()
-
+        
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        if appDelegate.cityInfo != "" {
+            cityInfo = appDelegate.cityInfo
+            self.getWeatherData()
+            self.getFutureWeatherData()
+            self.getLifeData()
+            self.getPMData()
+        }
         // Do any additional setup after loading the view, typically from a nib.
     }
     
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
         UIApplication.shared.statusBarStyle = .lightContent
     }
     
@@ -380,15 +389,83 @@ extension String {
         return pos
     }
 }
-
-//extension WeatherViewController: UIViewControllerTransitioningDelegate {
-//    func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-//        return Present()
-//    }
-//    func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-//        return Dismiss()
-//    }
-//}
+extension WeatherViewController: CLLocationManagerDelegate {
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        if appDelegate.cityInfo == "" {
+            self.currLocation = locations.last
+            let geoCoder: CLGeocoder = CLGeocoder()
+            geoCoder.reverseGeocodeLocation(locations.last!) { (marks, error) in
+                if error == nil {
+                    let mark: CLPlacemark = marks![0]
+                    let city = mark.locality?.replacingOccurrences(of: "市", with: "")
+                    self.getCityData(nowCity: city!)
+                } else {
+                    print("\(error!)")
+                }
+                if marks?.count == 0 {
+                    return
+                        print("error")
+                }
+            }
+        }
+    }
+    
+    func getCityData(nowCity: String) {
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        let path = "http://api.k780.com/?app=weather.city%20&&%20appkey=29082&sign=7034102070325f406c7de00fb38a90c1&format=json"
+        let url = NSURL(string: path)
+        let request = URLRequest(url: url! as URL)
+        let session = URLSession.shared
+        let task = session.dataTask(with: request) { (data, response, error) in
+            if error == nil {
+                do {
+                    let json = try JSON(data: data!)
+                    let count: Int = json["result"].count
+                    let jsonDic = json["result"].dictionary!
+                    let sortedKeysAndValues = jsonDic.sorted(by: { (d1, d2) -> Bool in
+                        return d1 < d2 ? true : false
+                    })
+                    self.citynms = []
+                    self.cityInfos = [:]
+                    for i in 0..<count {
+                        let city = sortedKeysAndValues[i].value["citynm"].string!
+                        let id = sortedKeysAndValues[i].value["weaid"].string!
+                        if city == nowCity {
+                            self.cityInfo = id
+                            if appDelegate.cityInfo == "" {
+                                appDelegate.locationCity = city
+                            }
+                        }
+                    }
+                    DispatchQueue.main.async {
+                        if appDelegate.cityInfo == "" {
+                            self.getWeatherData()
+                            self.getFutureWeatherData()
+                            self.getLifeData()
+                            self.getPMData()
+                            self.loadingAction()
+                        }
+                    }
+                } catch {
+                    print("Error creating the database")
+                }
+            } else {
+                print(error!)
+            }
+        }
+        task.resume()
+    }
+    
+    func loadingAction() {
+        let loadingView = self.view.viewWithTag(121)
+        UIView.animate(withDuration: 0.2, animations: {
+            loadingView?.alpha = 0
+        }) { (_) in
+            loadingView?.isHidden = true
+        }
+    }
+}
 
 extension WeatherViewController{
     
@@ -521,5 +598,24 @@ extension WeatherViewController{
             make.bottom.equalTo(weatherImage)
             make.right.equalTo(weatherImage).offset(-70)
         }
+        
+        let loadingView = UIView(frame: self.view.frame)
+        loadingView.tag = 121
+        loadingView.backgroundColor = self.view.backgroundColor
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        if appDelegate.cityInfo != "" {
+            loadingView.isHidden = true
+        } else {
+            loadingView.isHidden = false
+        }
+        self.view.addSubview(loadingView)
+        let loadingLabel = UILabel(frame: CGRect(x: 0, y: 200, width: weatherSize.screen_w, height: 100))
+        loadingLabel.text = "正在定位当前所在城市..."
+        loadingLabel.font = UIFont(name: "HelveticaNeue-Light", size: 16)
+        loadingLabel.textColor = UIColor.white
+        loadingLabel.textAlignment = .center
+        loadingView.addSubview(loadingLabel)
+        
     }
+    
 }

@@ -11,13 +11,17 @@ import CoreData
 
 class AddViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate {
     var cityInfo : CityInfo!
+    var cityInfosMO : [CityInfo] = []
+    var fc : NSFetchedResultsController<CityInfo>!
     var citynms : [String] = []
     var cityInfos : Dictionary<String, String> = [:]
+    let todayDate = Date()
+    let formatter = DateFormatter()
     
     @IBAction func cancelBtn(_ sender: UIButton) {
         let view = UIStoryboard.init(name: "Main", bundle: Bundle.main)
         let cityView = view.instantiateViewController(withIdentifier: "cityView")
-        cityView.heroModalAnimationType = .zoomSlide(direction: .right)
+        cityView.heroModalAnimationType = .pageOut(direction: .down)
         self.present(cityView, animated: true, completion: nil)
     }
     @IBOutlet weak var searchTextField: UITextField!
@@ -68,7 +72,6 @@ class AddViewController: UIViewController, UITableViewDelegate, UITableViewDataS
     }
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        searchTextField.resignFirstResponder()
         getCityData()
         return true
     }
@@ -76,15 +79,23 @@ class AddViewController: UIViewController, UITableViewDelegate, UITableViewDataS
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         
-        let appDelegate = UIApplication.shared.delegate as! AppDelegate
-        cityInfo = CityInfo(context: appDelegate.persistentContainer.viewContext)
-        cityInfo.city = citynms[indexPath.row]
-        cityInfo.id = cityInfos[citynms[indexPath.row]]
-        appDelegate.saveContext()
-        let view = UIStoryboard.init(name: "Main", bundle: Bundle.main)
-        let cityView = view.instantiateViewController(withIdentifier: "cityView")
-        cityView.heroModalAnimationType = .zoomSlide(direction: .right)
-        self.present(cityView, animated: true, completion: nil)
+        let isHad = fetHadCityInfos(resultCity: citynms[indexPath.row])
+        if isHad == true {
+            alertAction()
+        } else {
+            let appDelegate = UIApplication.shared.delegate as! AppDelegate
+            cityInfo = CityInfo(context: appDelegate.persistentContainer.viewContext)
+            cityInfo.city = citynms[indexPath.row]
+            cityInfo.id = cityInfos[citynms[indexPath.row]]
+            formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+            cityInfo.order = formatter.string(from: todayDate)
+            appDelegate.saveContext()
+            
+            let view = UIStoryboard.init(name: "Main", bundle: Bundle.main)
+            let cityView = view.instantiateViewController(withIdentifier: "cityView")
+            cityView.heroModalAnimationType = .zoomSlide(direction: .right)
+            self.present(cityView, animated: true, completion: nil)
+        }
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -100,6 +111,8 @@ class AddViewController: UIViewController, UITableViewDelegate, UITableViewDataS
     }
     
     func getCityData() {
+        searchTextField.resignFirstResponder()
+        
         let path = "http://api.k780.com/?app=weather.city%20&&%20appkey=29082&sign=7034102070325f406c7de00fb38a90c1&format=json"
         let url = NSURL(string: path)
         let request = URLRequest(url: url! as URL)
@@ -160,6 +173,40 @@ class AddViewController: UIViewController, UITableViewDelegate, UITableViewDataS
     }
     */
 
+}
+
+extension AddViewController: NSFetchedResultsControllerDelegate {
+    
+    func fetHadCityInfos(resultCity: String)->Bool {
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        let context = appDelegate.persistentContainer.viewContext
+        var hadCityArray: [String] = []
+        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "CityInfo")
+        
+        do {
+            let citysList = try context.fetch(fetchRequest)
+            
+            for city in citysList as! [CityInfo] {
+                hadCityArray.append(city.city!)
+            }
+        } catch {
+            print(error)
+        }
+        do {
+            try context.save()
+        } catch {
+            print(error)
+        }
+        return hadCityArray.contains(resultCity)
+        
+    }
+    
+    func alertAction() {
+        let alertController = UIAlertController(title: "提示",message: "列表中已存在该城市", preferredStyle: .alert)
+        let cancelAction = UIAlertAction(title: "好的", style: .cancel, handler: nil)
+        alertController.addAction(cancelAction)
+        self.present(alertController, animated: true, completion: nil)
+    }
 }
 
 class AddTableViewCell: UITableViewCell {
