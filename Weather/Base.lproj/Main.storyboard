@@ -192,7 +192,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="lqs-9c-Qcd">
-                                <rect key="frame" x="-0.5" y="20" width="375" height="90"/>
+                                <rect key="frame" x="0.0" y="20" width="375" height="90"/>
                                 <subviews>
                                     <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="请输入城市名" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="bjc-jc-43Q">
                                         <rect key="frame" x="10" y="50" width="295" height="30"/>
@@ -205,11 +205,11 @@
                                         <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                         <textInputTraits key="textInputTraits"/>
                                     </textField>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="asa-v3-Xy5">
+                                    <button opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="249" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="asa-v3-Xy5">
                                         <rect key="frame" x="315" y="50" width="50" height="30"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="30" id="MGe-CK-h9C"/>
-                                            <constraint firstAttribute="width" constant="50" id="g6V-BK-ZjP"/>
+                                            <constraint firstAttribute="width" constant="50" id="lif-kT-kGb"/>
                                         </constraints>
                                         <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="15"/>
                                         <state key="normal" title="查找">
@@ -285,11 +285,10 @@
                         <color key="backgroundColor" name="w_lightGray"/>
                         <constraints>
                             <constraint firstItem="lqs-9c-Qcd" firstAttribute="width" secondItem="XUO-Ou-PVm" secondAttribute="width" id="BG1-z8-QQD"/>
-                            <constraint firstItem="Dq0-mJ-azi" firstAttribute="trailing" secondItem="i68-AY-ccp" secondAttribute="trailing" id="BWq-5d-abg"/>
                             <constraint firstItem="lqs-9c-Qcd" firstAttribute="centerX" secondItem="Dq0-mJ-azi" secondAttribute="centerX" id="HQO-Tr-9H1"/>
                             <constraint firstItem="i68-AY-ccp" firstAttribute="centerX" secondItem="Dq0-mJ-azi" secondAttribute="centerX" id="QzH-38-eRm"/>
                             <constraint firstItem="i68-AY-ccp" firstAttribute="top" secondItem="lqs-9c-Qcd" secondAttribute="bottom" id="bia-pI-ooH"/>
-                            <constraint firstItem="i68-AY-ccp" firstAttribute="leading" secondItem="Dq0-mJ-azi" secondAttribute="leading" id="lMs-o4-yzi"/>
+                            <constraint firstItem="i68-AY-ccp" firstAttribute="leading" secondItem="XUO-Ou-PVm" secondAttribute="leading" id="kIm-an-Nz4"/>
                             <constraint firstItem="lqs-9c-Qcd" firstAttribute="top" secondItem="Dq0-mJ-azi" secondAttribute="top" id="nv7-uZ-5Xt"/>
                             <constraint firstItem="Dq0-mJ-azi" firstAttribute="bottom" secondItem="i68-AY-ccp" secondAttribute="bottom" id="xsQ-f5-dbx"/>
                         </constraints>
@@ -336,12 +335,6 @@
         <image name="menu" width="16" height="16"/>
         <namedColor name="w_gray">
             <color red="0.28999999165534973" green="0.3059999942779541" blue="0.31799998879432678" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
-        </namedColor>
-        <namedColor name="w_gray">
-            <color red="0.28999999165534973" green="0.3059999942779541" blue="0.31799998879432678" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
-        </namedColor>
-        <namedColor name="w_lightGray">
-            <color red="0.34099999070167542" green="0.3529999852180481" blue="0.36500000953674316" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
         </namedColor>
         <namedColor name="w_lightGray">
             <color red="0.34099999070167542" green="0.3529999852180481" blue="0.36500000953674316" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>

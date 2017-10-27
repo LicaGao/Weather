@@ -10,6 +10,7 @@ import UIKit
 import SnapKit
 import Hero
 import CoreLocation
+import MJRefresh
 
 class WeatherViewController: UIViewController, UIScrollViewDelegate, UITableViewDelegate, UITableViewDataSource {
 
@@ -18,17 +19,17 @@ class WeatherViewController: UIViewController, UIScrollViewDelegate, UITableView
     var futureDateArray : [String] = []
     var futureWeatherArray : [String] = []
     var futureWeatherDictionary: Dictionary<String, [String]> = [:]
-    var citynms : [String] = []
-    var cityInfos : Dictionary<String, String> = [:]
     let todayDate = Date()
     let formatter = DateFormatter()
     var isNight : Bool?
     var currLocation : CLLocation!
     
+    let header = MJRefreshNormalHeader()
+    
     @IBOutlet weak var bottomView: UIView!
     @IBOutlet weak var weatherInfoScrollView: UIScrollView!
     @IBAction func menuBtn(_ sender: UIButton) {
-        
+        //跳转列表
         let view = UIStoryboard.init(name: "Main", bundle: Bundle.main)
         let cityView = view.instantiateViewController(withIdentifier: "cityView")
         cityView.heroModalAnimationType = .pageOut(direction: .up)
@@ -39,14 +40,19 @@ class WeatherViewController: UIViewController, UIScrollViewDelegate, UITableView
         super.viewDidLoad()
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
-        locationManager.distanceFilter = 1000
+        locationManager.distanceFilter = 5000
         locationManager.requestAlwaysAuthorization()
         locationManager.startUpdatingLocation()
         self.isHeroEnabled = true
         timeDayNight()
         self.view.backgroundColor = isNight! ? UIColor(named: "w_nightblue") : UIColor(named: "w_lightblue")
         bottomView.backgroundColor = self.view.backgroundColor
-        weatherInfoScrollView.delegate = self
+        self.weatherInfoScrollView.delegate = self
+        header.setRefreshingTarget(self, refreshingAction: #selector(refresh))
+        self.weatherInfoScrollView.mj_header = header
+        header.stateLabel.textColor = UIColor.white
+        header.lastUpdatedTimeLabel.isHidden = true
+        header.stateLabel.isHidden = true
         
         setUI()
         
@@ -71,31 +77,45 @@ class WeatherViewController: UIViewController, UIScrollViewDelegate, UITableView
         // Dispose of any resources that can be recreated.
     }
     
+    @objc func refresh() {
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        if appDelegate.cityInfo != "" {
+            cityInfo = appDelegate.cityInfo
+        }
+        self.getWeatherData()
+        self.getFutureWeatherData()
+        self.getLifeData()
+        self.getPMData()
+
+        self.weatherInfoScrollView.mj_header.endRefreshing()
+        let title = self.view.viewWithTag(101) as! UILabel
+        UIView.animate(withDuration: 0.3) {
+            title.alpha = 1
+        }
+    }
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return futureWeatherDictionary.count
     }
     
+    //判断是否为夜间 （18：00 ~ 6：00）
     func timeDayNight() {
 
         let todayStr = "\(todayDate)"
+        //字符串切割，获得日期
         let index = todayStr.index(todayStr.startIndex, offsetBy: 10)
         let todayStrResult = todayStr[...index]
         formatter.dateFormat = "yyyy-MM-dd HH:mm"
-        let earlierDate = formatter.date(from: todayStrResult+" 19:00")! as NSDate
-        print(earlierDate)
+        let earlierDate = formatter.date(from: todayStrResult+" 18:00")! as NSDate
+        //当前天数+1
         let calculatedDate = Calendar.current.date(byAdding: .day, value: 1, to: todayDate)
         let tomorrowStr = String(describing: calculatedDate!)
         let tomorrowIndex = tomorrowStr.index(tomorrowStr.startIndex, offsetBy: 10)
         let tomorrowStrResult = tomorrowStr[...tomorrowIndex]
         formatter.dateFormat = "yyyy-MM-dd HH:mm"
         let laterDate = formatter.date(from: tomorrowStrResult+" 06:00")! as NSDate
-        print(laterDate)
         let early = earlierDate.laterDate(todayDate)
         let late = laterDate.earlierDate(todayDate)
-        
-        print("\(todayDate)")
-        print(early)
-        print(late)
         
         if early == late {
             isNight = true
@@ -109,6 +129,7 @@ class WeatherViewController: UIViewController, UIScrollViewDelegate, UITableView
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
         cell.backgroundColor = self.view.backgroundColor
         cell.selectionStyle = .none
+        //字典降序排序
         let sortedKeysAndValues = self.futureWeatherDictionary.sorted(by: { (d1, d2) -> Bool in
             return d1.0 < d2.0 ? true : false
         })
@@ -145,6 +166,7 @@ class WeatherViewController: UIViewController, UIScrollViewDelegate, UITableView
         let weaImg = UIImageView(frame: CGRect(x: 0, y: 0, width: 25, height: 25))
         weaImg.center.x = weatherSize.screen_w / 2
         weaImg.center.y = cell.center.y
+        //判断获取到的天气信息中是否有类似于“多云转晴”的天气，如果有的话则使用最终的天气作为图标
         let weaPy = sortedKeysAndValues[indexPath.row].value[1].transformToPinYin()
         let zhuanStr = "zhuan"
         let range = weaPy.range(of: zhuanStr)
@@ -173,34 +195,51 @@ class WeatherViewController: UIViewController, UIScrollViewDelegate, UITableView
     }
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        //滚动使标题栏渐变 改变城市标题宽度形成左移效果
         let titleView = self.view.viewWithTag(100)
         let title = self.view.viewWithTag(101) as! UILabel
+        //设置最小偏移量
         let min : CGFloat = 0
+        //设置最大偏移量
         let max : CGFloat = 120
+        let maxRe : CGFloat = 50
+        //获得当前滚动的偏移量
         let offset = scrollView.contentOffset.y
-
-        let alpha = (offset - min) / (max - min)
-        titleView?.alpha = alpha
-        let width = weatherSize.screen_w - offset * 2
-        if width <= 100 {
-            title.frame.size.width = 100
-        } else if width >= weatherSize.screen_w {
-            title.frame.size.width = weatherSize.screen_w
+        if offset >= 0 {
+            //（当前-最小）/（最大-最小） 得到的百分比值作为自定义标题栏的透明度
+            let alpha = (offset - min) / (max - min)
+            titleView?.alpha = alpha
+            //计算标题宽度变化
+            let width = weatherSize.screen_w - offset * 2
+            //增加条件防止宽度过大或过小
+            if width <= 150 {
+                title.frame.size.width = 150
+            } else if width >= weatherSize.screen_w {
+                title.frame.size.width = weatherSize.screen_w
+            } else {
+                title.frame.size.width = width
+            }
         } else {
-            title.frame.size.width = width
+            let alphaRe = (maxRe + offset) / (maxRe - min)
+            title.alpha = alphaRe
         }
+
     }
     
     func getWeatherData() {
-        
+        //解析json得到基本天气数据
         let path = "http://api.k780.com:88/?app=weather.today&weaid=\(cityInfo)&&appkey=29082&sign=7034102070325f406c7de00fb38a90c1&format=json"
+        //转data
         let url = NSURL(string: path)
         let request = URLRequest(url: url! as URL)
         let session = URLSession.shared
         let task = session.dataTask(with: request) { (data, response, error) in
             if error == nil {
+                //错误处理
                 do {
+                    //使用swiftyJSON中的 JSON 方法将data转json
                     let json = try JSON(data: data!)
+                    //根据json串结构获取信息
                     let name = json["result"]["citynm"].string!
                     let temp = json["result"]["temperature_curr"].string!
                     let tempAll = json["result"]["temperature"].string!
@@ -208,6 +247,7 @@ class WeatherViewController: UIViewController, UIScrollViewDelegate, UITableView
                     let humidity = json["result"]["humidity"].string!
                     let wind = json["result"]["wind"].string!
                     let winp = json["result"]["winp"].string!
+                    //回到主线程更新UI（UI变化必须在主线程中完成）
                     DispatchQueue.main.async {
                         self.updateUI(name: name, temp: temp, tempAll: tempAll, weather: weather, humidity: humidity, wind: wind, winp: winp)
                     }
@@ -222,6 +262,7 @@ class WeatherViewController: UIViewController, UIScrollViewDelegate, UITableView
     }
     
     func getFutureWeatherData() {
+        //获取未来一周的信息
         let path = "http://api.k780.com:88/?app=weather.future&weaid=\(cityInfo)&&appkey=29082&sign=7034102070325f406c7de00fb38a90c1&format=json"
         let url = NSURL(string: path)
         let request = URLRequest(url: url! as URL)
@@ -231,6 +272,7 @@ class WeatherViewController: UIViewController, UIScrollViewDelegate, UITableView
                 do {
                     let json = try JSON(data: data!)
                     let count: Int = json["result"].count
+                    //遍历未来几日的天气数据并将数据存放在 键为日期（方便排序），值为存有星期、天气、最高最低温度的数组
                     for i in 0..<count {
                         let days = json["result"][i]["days"].string!
                         let week = json["result"][i]["week"].string!
@@ -257,7 +299,7 @@ class WeatherViewController: UIViewController, UIScrollViewDelegate, UITableView
     }
     
     func getLifeData() {
-        
+        //获取生活指南信息：紫外线等
         let path = "http://api.k780.com/?app=weather.lifeindex&weaid=\(cityInfo)&&appkey=29082&sign=7034102070325f406c7de00fb38a90c1&format=json"
         let url = NSURL(string: path)
         let request = URLRequest(url: url! as URL)
@@ -268,6 +310,7 @@ class WeatherViewController: UIViewController, UIScrollViewDelegate, UITableView
                     self.formatter.dateFormat = "yyyy-MM-dd"
                     let todayDateStr = self.formatter.string(from: self.todayDate)
                     let json = try JSON(data: data!)
+                    //json解析得到的生活信息是未来很多天的数据，我们只需要获取今天的信息
                     let uv = json["result"][todayDateStr]["lifeindex_uv_attr"].string!
                     let ct = json["result"][todayDateStr]["lifeindex_ct_attr"].string!
                     DispatchQueue.main.async {
@@ -284,7 +327,7 @@ class WeatherViewController: UIViewController, UIScrollViewDelegate, UITableView
     }
     
     func getPMData() {
-        
+        //获取空气质量及相关信息
         let path = "http://api.k780.com:88/?app=weather.pm25&weaid=\(cityInfo)&appkey=29082&sign=7034102070325f406c7de00fb38a90c1&format=json"
         let url = NSURL(string: path)
         let request = URLRequest(url: url! as URL)
@@ -327,6 +370,7 @@ class WeatherViewController: UIViewController, UIScrollViewDelegate, UITableView
         weatherLable.text = weather
         let weaPy = weather.transformToPinYin()
         let weaPynight = weaPy + "wan"
+        //进入夜间后将以下出现太阳图标的天气图标更换为月亮
         if weaPy == "qing" || weaPy == "duoyun" || weaPy == "zhenyu" || weaPy == "wu" {
             weatherImage.image = isNight! ? UIImage(named: weaPynight) : UIImage(named: weaPy)
         } else {
@@ -339,6 +383,7 @@ class WeatherViewController: UIViewController, UIScrollViewDelegate, UITableView
     }
     
     func updateFutureUI() {
+        //刷新未来天气的tableView
         (self.view.viewWithTag(200) as! UITableView).reloadData()
     }
     
@@ -371,6 +416,7 @@ class WeatherViewController: UIViewController, UIScrollViewDelegate, UITableView
 }
 
 extension String {
+    //扩展String类 将汉字转化为拼音
     func transformToPinYin()->String {
         let mutableString = NSMutableString(string: self)
         CFStringTransform(mutableString, nil, kCFStringTransformToLatin, false)
@@ -378,7 +424,7 @@ extension String {
         let string = String(mutableString)
         return string.replacingOccurrences(of: " ", with: "")
     }
-    
+    //获取指定字符串在包含该字符串的字符串中的起始位置
     func positionOf(sub:String)->Int {
         var pos = -1
         if let range = range(of:sub) {
@@ -389,15 +435,20 @@ extension String {
         return pos
     }
 }
+
+//重点***定位当前城市
 extension WeatherViewController: CLLocationManagerDelegate {
+    //实现delegate方法
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         let appDelegate = UIApplication.shared.delegate as! AppDelegate
         if appDelegate.cityInfo == "" {
             self.currLocation = locations.last
             let geoCoder: CLGeocoder = CLGeocoder()
+            //反编译将经纬度转化为城市
             geoCoder.reverseGeocodeLocation(locations.last!) { (marks, error) in
                 if error == nil {
                     let mark: CLPlacemark = marks![0]
+                    //获得城市名 为方便后续操作将“市”字删除
                     let city = mark.locality?.replacingOccurrences(of: "市", with: "")
                     self.getCityData(nowCity: city!)
                 } else {
@@ -413,6 +464,7 @@ extension WeatherViewController: CLLocationManagerDelegate {
     
     func getCityData(nowCity: String) {
         let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        //全部城市名称的json地址
         let path = "http://api.k780.com/?app=weather.city%20&&%20appkey=29082&sign=7034102070325f406c7de00fb38a90c1&format=json"
         let url = NSURL(string: path)
         let request = URLRequest(url: url! as URL)
@@ -426,14 +478,14 @@ extension WeatherViewController: CLLocationManagerDelegate {
                     let sortedKeysAndValues = jsonDic.sorted(by: { (d1, d2) -> Bool in
                         return d1 < d2 ? true : false
                     })
-                    self.citynms = []
-                    self.cityInfos = [:]
                     for i in 0..<count {
+                        //遍历 将定位得到的城市名分别于列表中的城市进行对比 如果相同则获得该城市的信息 完成定位功能
                         let city = sortedKeysAndValues[i].value["citynm"].string!
                         let id = sortedKeysAndValues[i].value["weaid"].string!
                         if city == nowCity {
                             self.cityInfo = id
                             if appDelegate.cityInfo == "" {
+                                //将当前定位到的城市名存储到appDelegate中进行传值
                                 appDelegate.locationCity = city
                             }
                         }
@@ -458,6 +510,7 @@ extension WeatherViewController: CLLocationManagerDelegate {
     }
     
     func loadingAction() {
+        //正在加载的预览界面动画 在定位成功后隐藏
         let loadingView = self.view.viewWithTag(121)
         UIView.animate(withDuration: 0.2, animations: {
             loadingView?.alpha = 0
@@ -470,8 +523,9 @@ extension WeatherViewController: CLLocationManagerDelegate {
 extension WeatherViewController{
     
     func setUI() {
+//——————————————————————————布局
         weatherInfoScrollView.contentSize = CGSize(width: weatherSize.screen_w, height: 850)
-        
+        //实时温度
         let tempLabel = UILabel(frame: CGRect(x: 0, y: 70, width: weatherSize.screen_w, height: 100))
         tempLabel.tag = 102
         tempLabel.text = "--℃"
@@ -479,6 +533,7 @@ extension WeatherViewController{
         tempLabel.font = UIFont(name: "HelveticaNeue-Bold", size: 80)
         tempLabel.textColor = UIColor.white
         weatherInfoScrollView.addSubview(tempLabel)
+        //最高最低温度
         let tempAllLabel = UILabel()
         tempAllLabel.tag = 107
         tempAllLabel.frame.size = CGSize(width: weatherSize.screen_w, height: 30)
@@ -487,10 +542,12 @@ extension WeatherViewController{
         tempAllLabel.font = UIFont(name: "HelveticaNeue-Light", size: 20)
         tempAllLabel.textColor = UIColor.white
         weatherInfoScrollView.addSubview(tempAllLabel)
+        //snapKit框架 代码进行自动布局
         tempAllLabel.snp.makeConstraints { (make) in
             make.bottom.equalTo(tempLabel).offset(30)
             make.centerX.equalTo(weatherInfoScrollView)
         }
+        //天气
         let weatherLabel = UILabel()
         weatherLabel.tag = 103
         weatherLabel.frame.size = CGSize(width: weatherSize.screen_w, height: 30)
@@ -503,6 +560,7 @@ extension WeatherViewController{
             make.bottom.equalTo(tempAllLabel).offset(30)
             make.centerX.equalTo(weatherInfoScrollView)
         }
+        //未来一周天气 使用tableView显示
         let futureTableView = UITableView()
         futureTableView.tag = 200
         futureTableView.backgroundColor = self.view.backgroundColor
@@ -515,7 +573,7 @@ extension WeatherViewController{
         futureTableView.separatorStyle = .none
         futureTableView.register(UITableViewCell.classForCoder(), forCellReuseIdentifier: "cell")
         weatherInfoScrollView.addSubview(futureTableView)
-        
+        //分割线
         let lineView = UIView(frame: CGRect(x: 0, y: 570, width: weatherSize.screen_w, height: 0.5))
         lineView.backgroundColor = isNight! ? UIColor(named: "w_darkblue") : UIColor(named: "w_blue")
         weatherInfoScrollView.addSubview(lineView)
@@ -523,7 +581,7 @@ extension WeatherViewController{
         otherInfoView.backgroundColor = self.view.backgroundColor
         otherInfoView.frame = CGRect(x: 0, y: 580, width: weatherSize.screen_w, height: 240)
         weatherInfoScrollView.addSubview(otherInfoView)
-        
+        //紫外线 空气质量等其他信息
         let otherLabel_1 = UILabel()
         otherLabel_1.tag = 201
         let otherLabel_2 = UILabel()
@@ -545,16 +603,18 @@ extension WeatherViewController{
             i.textAlignment = .left
             i.textColor = UIColor.white
             otherInfoView.addSubview(i)
-            
+            //设置下一个label时y值+40
             labelY += 40
         }
         
-//——————————————————————————————————————————
+//——————————————————————————————————————————以下为标题栏布局
+        //标题栏主体
         let titleView = UIView()
         titleView.tag = 100
         titleView.backgroundColor = isNight! ? UIColor(named: "w_darkblue") : UIColor(named: "w_blue")
         titleView.frame = CGRect(x: 0, y: 0, width: weatherSize.screen_w, height: 100)
         titleView.alpha = 0
+        //标题 显示城市名
         let title = UILabel()
         title.text = "--"
         title.tag = 101
@@ -564,6 +624,7 @@ extension WeatherViewController{
         title.textColor = UIColor.white
         title.center.x = titleView.center.x
         title.center.y = titleView.center.y + 15
+        //天气图标
         let weatherImage = UIImageView()
         weatherImage.tag = 104
         self.view.addSubview(titleView)
@@ -574,6 +635,7 @@ extension WeatherViewController{
             make.right.equalTo(self.view).offset(-10)
             make.centerY.equalTo(title)
         }
+        //标题栏上的温度
         let tempTitleLable = UILabel()
         tempTitleLable.tag = 105
         tempTitleLable.font = UIFont(name: "HelveticaNeue-Light", size: 25)
@@ -586,6 +648,7 @@ extension WeatherViewController{
             make.top.equalTo(weatherImage)
             make.right.equalTo(weatherImage).offset(-70)
         }
+        //标题栏上的最高最低温度
         let tempAllTitleLable = UILabel()
         tempAllTitleLable.tag = 106
         tempAllTitleLable.font = UIFont(name: "HelveticaNeue-Thin", size: 15)
@@ -598,7 +661,7 @@ extension WeatherViewController{
             make.bottom.equalTo(weatherImage)
             make.right.equalTo(weatherImage).offset(-70)
         }
-        
+        //定位预加载view
         let loadingView = UIView(frame: self.view.frame)
         loadingView.tag = 121
         loadingView.backgroundColor = self.view.backgroundColor

@@ -24,15 +24,17 @@ class CityListViewController: UIViewController, UITableViewDelegate, UITableView
             locationCityLabel.text = appDelegate.locationCity
         }
         super.viewDidLoad()
+        //使用大标题 iOS 11独有
         self.navigationController?.navigationBar.prefersLargeTitles = true
         self.isHeroEnabled = true
         cityListTableView.rowHeight = 40
         cityListTableView.delegate = self
         cityListTableView.dataSource = self
         cityListTableView.tableFooterView = UIView()
+        //分割线长度和颜色
         cityListTableView.separatorInset = UIEdgeInsetsMake(0, 10, 0, 10)
         cityListTableView.separatorColor = UIColor(named: "w_lightGray")
-        
+        //按钮的阴影背景图片
         let bgImage = UIImageView(image: #imageLiteral(resourceName: "bg"))
         self.view.addSubview(bgImage)
         bgImage.snp.makeConstraints { (make) in
@@ -50,7 +52,7 @@ class CityListViewController: UIViewController, UITableViewDelegate, UITableView
             make.size.equalTo(40)
             make.center.equalTo(bgImage)
         }
-        
+        //给显示当前定位城市名的view添加点击事件
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(tapAction(tapGesture:)))
         locationView.addGestureRecognizer(tapGesture)
         
@@ -64,6 +66,7 @@ class CityListViewController: UIViewController, UITableViewDelegate, UITableView
     }
     
     @objc func tapAction(tapGesture: UITapGestureRecognizer) {
+        //如果AppDelegate中的cityInfo不为空则将其设为空以便跳转后自动启动定位方法
         let appDelegate = UIApplication.shared.delegate as! AppDelegate
         if appDelegate.cityInfo != "" {
             appDelegate.cityInfo = ""
@@ -72,7 +75,6 @@ class CityListViewController: UIViewController, UITableViewDelegate, UITableView
         let weatherView = view.instantiateViewController(withIdentifier: "weatherView")
         weatherView.heroModalAnimationType = .pageIn(direction: .down)
         self.present(weatherView, animated: true, completion: nil)
-        
     }
     
     @objc func addAction(_ sender: UIButton) {
@@ -82,6 +84,7 @@ class CityListViewController: UIViewController, UITableViewDelegate, UITableView
         self.present(addView, animated: true, completion: nil)
     }
     
+    //tableView变化的相关方法 配合滑动删除手势
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         cityListTableView.beginUpdates()
     }
@@ -106,12 +109,12 @@ class CityListViewController: UIViewController, UITableViewDelegate, UITableView
             cityInfos = object as! [CityInfo]
         }
     }
-    
+    //iOS 11 新方法 training表示右侧手势 leading表示左侧，代替之前的editAction
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         let actionDel = UIContextualAction(style: .destructive, title: "删除") { (action, view, finished) in
             let appDelegate = UIApplication.shared.delegate as! AppDelegate
             let context = appDelegate.persistentContainer.viewContext
-            
+            //删除数据源
             context.delete(self.fc.object(at: indexPath))
             appDelegate.saveContext()
             
@@ -122,12 +125,12 @@ class CityListViewController: UIViewController, UITableViewDelegate, UITableView
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        //点击后立刻取消点击状态
         tableView.deselectRow(at: indexPath, animated: true)
-        
+        //把选择的城市的id保存到appdelegate的cityInfo中
         let appDelegate = UIApplication.shared.delegate as! AppDelegate
         let cityInfo = cityInfos[indexPath.row]
         appDelegate.cityInfo = cityInfo.id!
-        
         let view = UIStoryboard.init(name: "Main", bundle: Bundle.main)
         let weatherView = view.instantiateViewController(withIdentifier: "weatherView")
         weatherView.heroModalAnimationType = .pageIn(direction: .down)
@@ -161,9 +164,11 @@ class CityListViewController: UIViewController, UITableViewDelegate, UITableView
 
 extension CityListViewController: NSFetchedResultsControllerDelegate {
     func fetchAllCityInfos() {
+        //使用fetch取回保存在CoreData中的数据
         let appDelegate = UIApplication.shared.delegate as! AppDelegate
         let context = appDelegate.persistentContainer.viewContext
         let request : NSFetchRequest<CityInfo> = CityInfo.fetchRequest()
+        //设置取回后的排序方式
         let sortDescriptors = NSSortDescriptor(key: "order", ascending: true)
         request.sortDescriptors = [sortDescriptors]
         
