@@ -87,18 +87,18 @@
                                 <rect key="frame" x="0.0" y="0.0" width="375" height="603"/>
                                 <color key="backgroundColor" name="w_gray"/>
                                 <view key="tableHeaderView" contentMode="scaleToFill" id="i3E-ol-VTS">
-                                    <rect key="frame" x="0.0" y="0.0" width="375" height="50"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="375" height="43"/>
                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                     <subviews>
                                         <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Jcx-FJ-QIF">
-                                            <rect key="frame" x="-0.5" y="45" width="375" height="5"/>
+                                            <rect key="frame" x="-0.5" y="40" width="375" height="3"/>
                                             <color key="backgroundColor" name="w_lightGray"/>
                                             <constraints>
-                                                <constraint firstAttribute="height" constant="5" id="uMM-YO-L3b"/>
+                                                <constraint firstAttribute="height" constant="3" id="uMM-YO-L3b"/>
                                             </constraints>
                                         </view>
                                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="fIv-bm-Vpt">
-                                            <rect key="frame" x="35" y="7.5" width="340" height="30"/>
+                                            <rect key="frame" x="10" y="4.5" width="40" height="30"/>
                                             <constraints>
                                                 <constraint firstAttribute="height" constant="30" id="AvQ-hV-nId"/>
                                             </constraints>
@@ -107,28 +107,27 @@
                                             <nil key="highlightedColor"/>
                                         </label>
                                         <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="location" translatesAutoresizingMaskIntoConstraints="NO" id="ja4-UC-Sae">
-                                            <rect key="frame" x="10" y="15" width="15" height="15"/>
+                                            <rect key="frame" x="60" y="14.5" width="10" height="10"/>
                                             <constraints>
-                                                <constraint firstAttribute="height" constant="15" id="ZGw-2k-Sd3"/>
-                                                <constraint firstAttribute="width" constant="15" id="nBn-IY-LOY"/>
+                                                <constraint firstAttribute="height" constant="10" id="ZGw-2k-Sd3"/>
+                                                <constraint firstAttribute="width" constant="10" id="nBn-IY-LOY"/>
                                             </constraints>
                                         </imageView>
                                     </subviews>
                                     <color key="backgroundColor" name="w_gray"/>
                                     <constraints>
+                                        <constraint firstItem="fIv-bm-Vpt" firstAttribute="leading" secondItem="i3E-ol-VTS" secondAttribute="leading" constant="10" id="CvH-Hw-mGb"/>
+                                        <constraint firstItem="ja4-UC-Sae" firstAttribute="leading" secondItem="fIv-bm-Vpt" secondAttribute="trailing" constant="10" id="IEZ-lJ-VZm"/>
                                         <constraint firstItem="fIv-bm-Vpt" firstAttribute="centerY" secondItem="ja4-UC-Sae" secondAttribute="centerY" id="L8G-gN-J1u"/>
                                         <constraint firstItem="Jcx-FJ-QIF" firstAttribute="width" secondItem="i3E-ol-VTS" secondAttribute="width" id="P0d-aN-TZM"/>
                                         <constraint firstItem="Jcx-FJ-QIF" firstAttribute="centerX" secondItem="i3E-ol-VTS" secondAttribute="centerX" id="bPN-ek-5dr"/>
                                         <constraint firstAttribute="bottom" secondItem="Jcx-FJ-QIF" secondAttribute="bottom" id="cPB-Jq-qMP"/>
-                                        <constraint firstItem="ja4-UC-Sae" firstAttribute="leading" secondItem="i3E-ol-VTS" secondAttribute="leading" constant="10" id="lZn-jp-Ch7"/>
-                                        <constraint firstAttribute="trailing" secondItem="fIv-bm-Vpt" secondAttribute="trailing" id="ngw-EL-eXd"/>
-                                        <constraint firstItem="ja4-UC-Sae" firstAttribute="centerY" secondItem="i3E-ol-VTS" secondAttribute="centerY" constant="-2.5" id="wDO-ef-lKC"/>
-                                        <constraint firstItem="fIv-bm-Vpt" firstAttribute="leading" secondItem="ja4-UC-Sae" secondAttribute="trailing" constant="10" id="zve-96-kVo"/>
+                                        <constraint firstItem="ja4-UC-Sae" firstAttribute="centerY" secondItem="i3E-ol-VTS" secondAttribute="centerY" constant="-1.5" id="wDO-ef-lKC"/>
                                     </constraints>
                                 </view>
                                 <prototypes>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="cityCell" id="Oum-i4-naW" customClass="CityListTableViewCell" customModule="Weather" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="80" width="375" height="44"/>
+                                        <rect key="frame" x="0.0" y="73" width="375" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="Oum-i4-naW" id="UaD-Ty-DdM">
                                             <rect key="frame" x="0.0" y="0.0" width="375" height="43.5"/>

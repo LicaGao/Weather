@@ -16,7 +16,6 @@ class WeatherViewController: UIViewController, UIScrollViewDelegate, UITableView
 
     let locationManager:CLLocationManager = CLLocationManager()
     var cityInfo: String = ""
-    var futureDateArray : [String] = []
     var futureWeatherArray : [String] = []
     var futureWeatherDictionary: Dictionary<String, [String]> = [:]
     let todayDate = Date()
@@ -78,10 +77,12 @@ class WeatherViewController: UIViewController, UIScrollViewDelegate, UITableView
     }
     
     @objc func refresh() {
+//        (self.view.viewWithTag(200) as! UITableView).reloadData()
         let appDelegate = UIApplication.shared.delegate as! AppDelegate
         if appDelegate.cityInfo != "" {
             cityInfo = appDelegate.cityInfo
         }
+
         self.getWeatherData()
         self.getFutureWeatherData()
         self.getLifeData()
@@ -126,47 +127,34 @@ class WeatherViewController: UIViewController, UIScrollViewDelegate, UITableView
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! FutureTableViewCell
         cell.backgroundColor = self.view.backgroundColor
         cell.selectionStyle = .none
-        //字典降序排序
+                //字典降序排序
         let sortedKeysAndValues = self.futureWeatherDictionary.sorted(by: { (d1, d2) -> Bool in
             return d1.0 < d2.0 ? true : false
         })
-        let weekLabel = UILabel(frame: CGRect(x: 10, y: 0, width: 100, height: 40))
-        if futureWeatherDictionary.count == 0 {
-            weekLabel.text = "--"
-        } else {
-            weekLabel.text = sortedKeysAndValues[indexPath.row].value[0]
-        }
-        weekLabel.textAlignment = .left
-        if indexPath.row == 0 {
-            weekLabel.font = UIFont(name: "HelveticaNeue-Bold", size: 16)
-        } else {
-            weekLabel.font = UIFont(name: "HelveticaNeue-Light", size: 16)
-        }
-        weekLabel.textColor = UIColor.white
-        cell.contentView.addSubview(weekLabel)
         
-        let tempLabel = UILabel(frame: CGRect(x: weatherSize.screen_w - 110, y: 0, width: 100, height: 40))
         if futureWeatherDictionary.count == 0 {
-            tempLabel.text = "--℃/--℃"
+            cell.weekLabel.text = "--"
         } else {
-            tempLabel.text = sortedKeysAndValues[indexPath.row].value[2]
+            cell.weekLabel.text = sortedKeysAndValues[indexPath.row].value[0]
         }
-        tempLabel.textAlignment = .right
-        if indexPath.row == 0 {
-            tempLabel.font = UIFont(name: "HelveticaNeue-Light", size: 16)
-        } else {
-            tempLabel.font = UIFont(name: "HelveticaNeue-Thin", size: 16)
-        }
-        tempLabel.textColor = UIColor.white
-        cell.contentView.addSubview(tempLabel)
         
-        let weaImg = UIImageView(frame: CGRect(x: 0, y: 0, width: 25, height: 25))
-        weaImg.center.x = weatherSize.screen_w / 2
-        weaImg.center.y = cell.center.y
-        //判断获取到的天气信息中是否有类似于“多云转晴”的天气，如果有的话则使用最终的天气作为图标
+        if futureWeatherDictionary.count == 0 {
+            cell.tempLabel.text = "--℃/--℃"
+        } else {
+            cell.tempLabel.text = sortedKeysAndValues[indexPath.row].value[2]
+        }
+        
+        if indexPath.row == 0 {
+            cell.weekLabel.font = UIFont(name: "HelveticaNeue-Bold", size: 16)
+            cell.tempLabel.font = UIFont(name: "HelveticaNeue-Bold", size: 16)
+        } else {
+            cell.weekLabel.font = UIFont(name: "HelveticaNeue-Light", size: 16)
+            cell.tempLabel.font = UIFont(name: "HelveticaNeue-Bold", size: 16)
+        }
+
         let weaPy = sortedKeysAndValues[indexPath.row].value[1].transformToPinYin()
         let zhuanStr = "zhuan"
         let range = weaPy.range(of: zhuanStr)
@@ -174,24 +162,20 @@ class WeatherViewController: UIViewController, UIScrollViewDelegate, UITableView
             let daoStr = "-"
             let daoRange = weaPy.range(of: daoStr)
             if daoRange == nil {
-                weaImg.image = UIImage(named: weaPy)
+                cell.weaImg.image = UIImage(named: weaPy)
             } else {
                 let daoPosition = weaPy.positionOf(sub: zhuanStr)
                 let daoIndex = weaPy.index(weaPy.startIndex, offsetBy: daoPosition)
                 let daoPositionResult = weaPy[daoIndex...]
-                weaImg.image = UIImage(named: "\(daoPositionResult)")
+                cell.weaImg.image = UIImage(named: "\(daoPositionResult)")
             }
         } else {
             let position = weaPy.positionOf(sub: zhuanStr)
             let index = weaPy.index(weaPy.startIndex, offsetBy: position+5)
             let positionResult = weaPy[index...]
-            weaImg.image = UIImage(named: "\(positionResult)")
+            cell.weaImg.image = UIImage(named: "\(positionResult)")
         }
-        
-        cell.contentView.addSubview(weaImg)
-        
         return cell
-        
     }
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -278,7 +262,6 @@ class WeatherViewController: UIViewController, UIScrollViewDelegate, UITableView
                         let week = json["result"][i]["week"].string!
                         let temperature = json["result"][i]["temperature"].string!
                         let weather = json["result"][i]["weather"].string!
-                        self.futureDateArray.append(days)
                         self.futureWeatherArray.append(week)
                         self.futureWeatherArray.append(weather)
                         self.futureWeatherArray.append(temperature)
@@ -385,6 +368,7 @@ class WeatherViewController: UIViewController, UIScrollViewDelegate, UITableView
     func updateFutureUI() {
         //刷新未来天气的tableView
         (self.view.viewWithTag(200) as! UITableView).reloadData()
+        (self.view.viewWithTag(200) as! UITableView).layoutIfNeeded()
     }
     
     func updateLifeUI(uv: String, ct: String) {
@@ -571,7 +555,7 @@ extension WeatherViewController{
         futureTableView.isScrollEnabled = false
         futureTableView.tableFooterView = UIView()
         futureTableView.separatorStyle = .none
-        futureTableView.register(UITableViewCell.classForCoder(), forCellReuseIdentifier: "cell")
+        futureTableView.register(FutureTableViewCell.self, forCellReuseIdentifier: "cell")
         weatherInfoScrollView.addSubview(futureTableView)
         //分割线
         let lineView = UIView(frame: CGRect(x: 0, y: 570, width: weatherSize.screen_w, height: 0.5))
@@ -681,4 +665,33 @@ extension WeatherViewController{
         
     }
     
+}
+
+class FutureTableViewCell: UITableViewCell {
+    var weekLabel = UILabel()
+    var weaImg = UIImageView()
+    var tempLabel = UILabel()
+    
+    override init(style: UITableViewCellStyle, reuseIdentifier: String?) {
+        super.init(style: .default, reuseIdentifier: "cell")
+        weekLabel.frame = CGRect(x: 10, y: 0, width: 100, height: 30)
+        weekLabel.textColor = UIColor.white
+        weekLabel.textAlignment = .left
+        weekLabel.font = UIFont(name: "HelveticaNeue-Light", size: 16)
+        self.addSubview(weekLabel)
+        
+        weaImg.frame = CGRect(x: 0, y: 0, width: 25, height: 25)
+        weaImg.center = self.center
+        self.addSubview(weaImg)
+        
+        tempLabel.frame = CGRect(x: weatherSize.screen_w - 110, y: 0, width: 100, height: 30)
+        tempLabel.textColor = UIColor.white
+        tempLabel.textAlignment = .right
+        tempLabel.font = UIFont(name: "HelveticaNeue-Light", size: 16)
+        self.addSubview(tempLabel)
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 }
