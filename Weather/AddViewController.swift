@@ -19,10 +19,7 @@ class AddViewController: UIViewController, UITableViewDelegate, UITableViewDataS
     let formatter = DateFormatter()
     
     @IBAction func cancelBtn(_ sender: UIButton) {
-        let view = UIStoryboard.init(name: "Main", bundle: Bundle.main)
-        let cityView = view.instantiateViewController(withIdentifier: "cityView")
-        cityView.heroModalAnimationType = .pageOut(direction: .down)
-        self.present(cityView, animated: true, completion: nil)
+        hero_dismissViewController()
     }
     @IBOutlet weak var searchTextField: UITextField!
     @IBAction func searchBtn(_ sender: UIButton) {
@@ -97,10 +94,9 @@ class AddViewController: UIViewController, UITableViewDelegate, UITableViewDataS
             cityInfo.order = formatter.string(from: todayDate)
             appDelegate.saveContext()
             
-            let view = UIStoryboard.init(name: "Main", bundle: Bundle.main)
-            let cityView = view.instantiateViewController(withIdentifier: "cityView")
-            cityView.heroModalAnimationType = .pageOut(direction: .down)
-            self.present(cityView, animated: true, completion: nil)
+            hero_dismissViewController()
+            let notificationName = Notification.Name(rawValue: "addNotification")
+            NotificationCenter.default.post(name: notificationName, object: self)
         }
     }
     

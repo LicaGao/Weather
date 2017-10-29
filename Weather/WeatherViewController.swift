@@ -31,7 +31,7 @@ class WeatherViewController: UIViewController, UIScrollViewDelegate, UITableView
         //跳转列表
         let view = UIStoryboard.init(name: "Main", bundle: Bundle.main)
         let cityView = view.instantiateViewController(withIdentifier: "cityView")
-        cityView.heroModalAnimationType = .pageOut(direction: .up)
+        cityView.heroModalAnimationType = .selectBy(presenting: .pageOut(direction: .up), dismissing: .pageIn(direction: .down))
         self.present(cityView, animated: true, completion: nil)
         
     }
@@ -63,6 +63,9 @@ class WeatherViewController: UIViewController, UIScrollViewDelegate, UITableView
             self.getLifeData()
             self.getPMData()
         }
+        
+        let notificationName = Notification.Name(rawValue: "cityNotification")
+        NotificationCenter.default.addObserver(self, selector: #selector(dismissNotification(notification:)), name: notificationName, object: nil)
         // Do any additional setup after loading the view, typically from a nib.
     }
     
@@ -76,18 +79,28 @@ class WeatherViewController: UIViewController, UIScrollViewDelegate, UITableView
         // Dispose of any resources that can be recreated.
     }
     
-    @objc func refresh() {
-//        (self.view.viewWithTag(200) as! UITableView).reloadData()
+    @objc func dismissNotification(notification: Notification) {
         let appDelegate = UIApplication.shared.delegate as! AppDelegate
         if appDelegate.cityInfo != "" {
             cityInfo = appDelegate.cityInfo
+        } else {
+            cityInfo = appDelegate.locationCityID
         }
-
         self.getWeatherData()
         self.getFutureWeatherData()
         self.getLifeData()
         self.getPMData()
-
+    }
+    
+    @objc func refresh() {
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        if appDelegate.cityInfo != "" {
+            cityInfo = appDelegate.cityInfo
+        }
+        self.getWeatherData()
+        self.getFutureWeatherData()
+        self.getLifeData()
+        self.getPMData()
         self.weatherInfoScrollView.mj_header.endRefreshing()
         let title = self.view.viewWithTag(101) as! UILabel
         UIView.animate(withDuration: 0.3) {
@@ -149,10 +162,10 @@ class WeatherViewController: UIViewController, UIScrollViewDelegate, UITableView
         
         if indexPath.row == 0 {
             cell.weekLabel.font = UIFont(name: "HelveticaNeue-Bold", size: 16)
-            cell.tempLabel.font = UIFont(name: "HelveticaNeue-Bold", size: 16)
+            cell.tempLabel.font = UIFont(name: "HelveticaNeue-Bold", size: 17)
         } else {
             cell.weekLabel.font = UIFont(name: "HelveticaNeue-Light", size: 16)
-            cell.tempLabel.font = UIFont(name: "HelveticaNeue-Bold", size: 16)
+            cell.tempLabel.font = UIFont(name: "HelveticaNeue-Light", size: 17)
         }
 
         let weaPy = sortedKeysAndValues[indexPath.row].value[1].transformToPinYin()
@@ -204,6 +217,12 @@ class WeatherViewController: UIViewController, UIScrollViewDelegate, UITableView
                 title.frame.size.width = width
             }
         } else {
+            let widthre =  weatherSize.screen_w + offset * 2
+            if widthre <= weatherSize.screen_w {
+                title.frame.size.width = weatherSize.screen_w
+            }
+            let alpha = (min + offset) / (maxRe - min)
+            titleView?.alpha = alpha
             let alphaRe = (maxRe + offset) / (maxRe - min)
             title.alpha = alphaRe
         }
@@ -471,6 +490,7 @@ extension WeatherViewController: CLLocationManagerDelegate {
                             if appDelegate.cityInfo == "" {
                                 //将当前定位到的城市名存储到appDelegate中进行传值
                                 appDelegate.locationCity = city
+                                appDelegate.locationCityID = id
                             }
                         }
                     }
@@ -674,20 +694,23 @@ class FutureTableViewCell: UITableViewCell {
     
     override init(style: UITableViewCellStyle, reuseIdentifier: String?) {
         super.init(style: .default, reuseIdentifier: "cell")
-        weekLabel.frame = CGRect(x: 10, y: 0, width: 100, height: 30)
+        weekLabel.frame = CGRect(x: 10, y: 0, width: 100, height: 40)
+        weekLabel.center.y = self.center.y
         weekLabel.textColor = UIColor.white
         weekLabel.textAlignment = .left
         weekLabel.font = UIFont(name: "HelveticaNeue-Light", size: 16)
         self.addSubview(weekLabel)
         
         weaImg.frame = CGRect(x: 0, y: 0, width: 25, height: 25)
-        weaImg.center = self.center
+        weaImg.center.y = self.center.y
+        weaImg.center.x = weatherSize.screen_w / 2
         self.addSubview(weaImg)
         
-        tempLabel.frame = CGRect(x: weatherSize.screen_w - 110, y: 0, width: 100, height: 30)
+        tempLabel.frame = CGRect(x: weatherSize.screen_w - 110, y: 0, width: 100, height: 40)
+        tempLabel.center.y = self.center.y
         tempLabel.textColor = UIColor.white
         tempLabel.textAlignment = .right
-        tempLabel.font = UIFont(name: "HelveticaNeue-Light", size: 16)
+        tempLabel.font = UIFont(name: "HelveticaNeue-Light", size: 17)
         self.addSubview(tempLabel)
     }
     

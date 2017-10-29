@@ -57,6 +57,9 @@ class CityListViewController: UIViewController, UITableViewDelegate, UITableView
         locationView.addGestureRecognizer(tapGesture)
         
         fetchAllCityInfos()
+        
+        let notificationName = Notification.Name(rawValue: "addNotification")
+        NotificationCenter.default.addObserver(self, selector: #selector(dismissFetch(notification:)), name: notificationName, object: self)
         // Do any additional setup after loading the view.
     }
 
@@ -65,22 +68,26 @@ class CityListViewController: UIViewController, UITableViewDelegate, UITableView
         // Dispose of any resources that can be recreated.
     }
     
+    @objc func dismissFetch(notification: Notification) {
+        fetchAllCityInfos()
+    }
+    
     @objc func tapAction(tapGesture: UITapGestureRecognizer) {
         //如果AppDelegate中的cityInfo不为空则将其设为空以便跳转后自动启动定位方法
         let appDelegate = UIApplication.shared.delegate as! AppDelegate
         if appDelegate.cityInfo != "" {
             appDelegate.cityInfo = ""
         }
-        let view = UIStoryboard.init(name: "Main", bundle: Bundle.main)
-        let weatherView = view.instantiateViewController(withIdentifier: "weatherView")
-        weatherView.heroModalAnimationType = .pageIn(direction: .down)
-        self.present(weatherView, animated: true, completion: nil)
+        
+        hero_dismissViewController()
+        let notificationName = Notification.Name(rawValue: "cityNotification")
+        NotificationCenter.default.post(name: notificationName, object: self)
     }
     
     @objc func addAction(_ sender: UIButton) {
         let view = UIStoryboard.init(name: "Main", bundle: Bundle.main)
         let addView = view.instantiateViewController(withIdentifier: "addView")
-        addView.heroModalAnimationType = .pageIn(direction: .up)
+        addView.heroModalAnimationType = .selectBy(presenting: .pageIn(direction: .up), dismissing: .pageOut(direction: .down))
         self.present(addView, animated: true, completion: nil)
     }
     
@@ -131,10 +138,10 @@ class CityListViewController: UIViewController, UITableViewDelegate, UITableView
         let appDelegate = UIApplication.shared.delegate as! AppDelegate
         let cityInfo = cityInfos[indexPath.row]
         appDelegate.cityInfo = cityInfo.id!
-        let view = UIStoryboard.init(name: "Main", bundle: Bundle.main)
-        let weatherView = view.instantiateViewController(withIdentifier: "weatherView")
-        weatherView.heroModalAnimationType = .pageIn(direction: .down)
-        self.present(weatherView, animated: true, completion: nil)
+
+        hero_dismissViewController()
+        let notificationName = Notification.Name(rawValue: "cityNotification")
+        NotificationCenter.default.post(name: notificationName, object: self)
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -186,7 +193,6 @@ extension CityListViewController: NSFetchedResultsControllerDelegate {
         } catch {
             print ("取回失败")
         }
-        
         cityListTableView.reloadData()
     }
 }
