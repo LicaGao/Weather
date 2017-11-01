@@ -10,6 +10,6 @@
 ## 用到的第三方库
  
 * [SwiftyJSON](https://github.com/SwiftyJSON/SwiftyJSON)：JSON解析
-* [Hero](https://github.com/lkzhao/Hero)；转场动画
+* [Hero](https://github.com/lkzhao/Hero)：转场动画
 * [SnapKit](https://github.com/SnapKit/SnapKit): 自动布局
 * [MJRefresh](https://github.com/CoderMJLee/MJRefresh)：下拉刷新（OC库）
